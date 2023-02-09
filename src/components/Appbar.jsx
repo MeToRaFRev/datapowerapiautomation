@@ -140,7 +140,7 @@ export default function Appbar(props) {
 
     const handleRemoveAll = async () => {
         let list = []
-        list.push(request(`http://${credentials.datapower}/Tools/rest-cors/mgmt/config/default/Domain/_Automation`, 'delete', null, { 'Authorization': `Basic ${btoa(`${credentials.username}:${credentials.password}`)}` }))
+        list.push(request(`http://${credentials.datapower}/Tools/rest-cors/mgmt/config/default/Domain/_Test`, 'delete', null, { 'Authorization': `Basic ${btoa(`${credentials.username}:${credentials.password}`)}` }))
         Promise.all(list);
         console.log('all deleted.')
     }

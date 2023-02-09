@@ -39,7 +39,7 @@ export default function Login(props) {
                             Object.keys(res.data.domain).forEach((key) => {
                                 if (res.data.domain[key].name !== 'default' && res.data.domain[key].name !== '_Tools')
                                     pulledDomains.push(res.data.domain[key].name);
-                                if (res.data.domain[key].name === '_Gateway') {
+                                if (res.data.domain[key].name === '_Test') {
                                     alert('Looks like you already installed the automation or either failed to.')
                                 }
                             });
