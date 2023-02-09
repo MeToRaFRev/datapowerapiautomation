@@ -16,12 +16,16 @@ function App() {
       ||
       { datapower: "", username: "", password: "" });
   const [auth, setAuth] = useState(false);
+  const [domains, setDomains] = useState({
+    list: [],
+    selected: "",
+  });
   return <ThemeProvider theme={darkmode ? createTheme(DarkTheme) : createTheme(LightTheme)}>
     <CssBaseline />
-    <Appbar setAuth={setAuth} auth={auth} credentials={credentials} />
+    <Appbar setAuth={setAuth} auth={auth} credentials={credentials} domains={domains} setDomains={setDomains} />
     {credentials.datapower === "" || credentials.username === "" || credentials.password === "" ?
-      <Login setCredentials={setCredentials} setAuth={setAuth} /> :
-      <div>Logged in</div>}
+      <Login setCredentials={setCredentials} setAuth={setAuth} domains={domains} setDomains={setDomains} /> :
+      null}
   </ThemeProvider>
 }
 

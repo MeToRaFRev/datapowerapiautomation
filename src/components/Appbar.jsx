@@ -6,11 +6,13 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import SearchIcon from '@mui/icons-material/Search';
 import InboxIcon from '@mui/icons-material/MoveToInbox';
 import AccountCircle from '@mui/icons-material/AccountCircle';
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import MailIcon from '@mui/icons-material/Mail';
 import MuiDrawer from '@mui/material/Drawer';
 import MuiAppBar from '@mui/material/AppBar';
-import { Box, Toolbar, List, CssBaseline, Typography, InputBase, Divider, ListItem, ListItemButton, ListItemIcon, ListItemText, Select, IconButton, MenuItem } from '@mui/material';
+import { Box, Toolbar, List, CssBaseline, Typography, InputBase, Divider, ListItem, ListItemButton, ListItemIcon, ListItemText, Select, IconButton, MenuItem, Icon } from '@mui/material';
 import Step from './Step.jsx';
+import axios from 'axios';
 
 const Search = styled('div')(({ theme }) => ({
     position: 'relative',
@@ -120,18 +122,29 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
     }),
 );
 
+const request = (url, method, data, headers) => {
+    return axios({
+        method,
+        url,
+        data,
+        headers
+    })
+}
+
 export default function Appbar(props) {
-    const { setAuth, auth, credentials } = props;
+    const { setAuth, auth, credentials, domains, setDomains } = props;
     const theme = useTheme();
     const [open, setOpen] = React.useState(false);
-    const [anchorEl, setAnchorEl] = React.useState(null);
-    const [install, setInstall] = React.useState(false);
-    const [domains, setDomains] = React.useState({ list: [], selected: '' });
+    const [installed, setInstalled] = React.useState('false');
     const menuId = 'primary-search-account-menu';
 
-    const handleProfileMenuOpen = (event) => {
-        setAnchorEl(event.currentTarget);
-    };
+    const handleRemoveAll = async () => {
+        let list = []
+        list.push(request(`http://${credentials.datapower}/Tools/rest-cors/mgmt/config/default/Domain/_Test`, 'delete', null, { 'Authorization': `Basic ${btoa(`${credentials.username}:${credentials.password}`)}` }))
+        Promise.all(list);
+        console.log('all deleted.')
+    }
+
     const handleDrawerOpen = () => {
         setOpen(true);
     };
@@ -160,6 +173,9 @@ export default function Appbar(props) {
                     <Typography variant="h6" noWrap component="div">
                         Datapower API Automation
                     </Typography>
+                    <IconButton onClick={handleRemoveAll}>
+                        <DeleteForeverIcon />
+                    </IconButton>
                     <Box sx={{ flexGrow: 1 }} />
                     <Search>
                         <SearchIconWrapper>
@@ -173,6 +189,10 @@ export default function Appbar(props) {
                     <Select
                         sx={{
                             height: "40px",
+                            width: "150px",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            display: "flex",
                         }}
                         defaultValue={domains.selected}
                         value={domains.selected}
@@ -195,7 +215,7 @@ export default function Appbar(props) {
                             aria-label="account of current user"
                             aria-controls={menuId}
                             aria-haspopup="true"
-                            onClick={handleProfileMenuOpen}
+                            onClick={() => { console.log(domains) }}
                             color="inherit"
                         >
                             {auth === true ? <AccountCircle sx={{ color: 'green' }} /> : <AccountCircle sx={{ color: 'red' }} />}
@@ -262,7 +282,7 @@ export default function Appbar(props) {
             </Drawer>
             <Box component="main" sx={{ flexGrow: 1, p: 10, display: 'flex', justifyContent: 'center' }}>
                 <DrawerHeader />
-                <Step install={install} setInstall={setInstall} credentials={credentials} setDomains={setDomains}></Step>
+                <Step installed={installed} setInstalled={setInstalled} credentials={credentials}></Step>
             </Box>
         </Box>
     );
