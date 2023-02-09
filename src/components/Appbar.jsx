@@ -179,7 +179,7 @@ export default function Appbar(props) {
                         label="Domain"
                         onChange={(e) => {
                             setDomains({ ...domains, selected: e.target.value });
-                            WTF
+                            //WTF
                         }}
                     >
                         {domains.list.map((domain) => (
