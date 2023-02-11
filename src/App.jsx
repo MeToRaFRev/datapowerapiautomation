@@ -23,8 +23,8 @@ function App() {
   return <ThemeProvider theme={darkmode ? createTheme(DarkTheme) : createTheme(LightTheme)}>
     <CssBaseline />
     <Appbar setAuth={setAuth} auth={auth} credentials={credentials} domains={domains} setDomains={setDomains} />
-    {credentials.datapower === "" || credentials.username === "" || credentials.password === "" ?
-      <Login setCredentials={setCredentials} setAuth={setAuth} domains={domains} setDomains={setDomains} /> :
+    {credentials.datapower === "" || credentials.username === "" || credentials.password === "" || auth === false?
+      <Login setCredentials={setCredentials} credentials={credentials} setAuth={setAuth} auth={auth} domains={domains} setDomains={setDomains} /> :
       null}
   </ThemeProvider>
 }

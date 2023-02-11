@@ -1,8 +1,10 @@
-import * as React from 'react';
+import React, { useState } from 'react';
 import { styled, useTheme, alpha } from '@mui/material/styles';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import DisabledByDefaultRoundedIcon from '@mui/icons-material/DisabledByDefaultRounded';
+import BalanceIcon from '@mui/icons-material/Balance';
 import SearchIcon from '@mui/icons-material/Search';
 import InboxIcon from '@mui/icons-material/MoveToInbox';
 import AccountCircle from '@mui/icons-material/AccountCircle';
@@ -10,8 +12,8 @@ import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import MailIcon from '@mui/icons-material/Mail';
 import MuiDrawer from '@mui/material/Drawer';
 import MuiAppBar from '@mui/material/AppBar';
-import { Box, Toolbar, List, CssBaseline, Typography, InputBase, Divider, ListItem, ListItemButton, ListItemIcon, ListItemText, Select, IconButton, MenuItem, Icon } from '@mui/material';
-import Step from './Step.jsx';
+import { Box, Toolbar, List, CssBaseline, Typography, InputBase, Divider, ListItem, ListItemButton, ListItemIcon, ListItemText, Select, IconButton, MenuItem, Button } from '@mui/material';
+import InstallCard from './InstallCard.jsx';
 import axios from 'axios';
 
 const Search = styled('div')(({ theme }) => ({
@@ -136,13 +138,43 @@ export default function Appbar(props) {
     const theme = useTheme();
     const [open, setOpen] = React.useState(false);
     const [installed, setInstalled] = React.useState('false');
+    const [prod, setProd] = useState(false)
+    const [selectedPage, setSelectedPage] = useState(0);
     const menuId = 'primary-search-account-menu';
+
+    const switchPage = (page) => {
+        switch (page) {
+            case 0:
+                return <InstallCard installed={installed} setInstalled={setInstalled} credentials={credentials} domain={domains.selected} prod={prod} setProd={setProd} setAuth={setAuth} />
+            case 1:
+                return <React.Fragment />
+            case 2:
+                return <React.Fragment />
+            case 3:
+                return <React.Fragment />
+            case 4:
+                return <React.Fragment />
+            case 5:
+                return <React.Fragment />
+            case 6:
+                return <React.Fragment />
+            case 7:
+                return <React.Fragment />
+        }
+    }
+
+    const handlePageChange = (page) => {
+        setSelectedPage(page);
+    }
 
     const handleRemoveAll = async () => {
         let list = []
-        list.push(request(`http://${credentials.datapower}/Tools/rest-cors/mgmt/config/default/Domain/_Test`, 'delete', null, { 'Authorization': `Basic ${btoa(`${credentials.username}:${credentials.password}`)}` }))
+        let domain = prod ? '_Production' : '_Test'
+        list.push(request(`http://${credentials.datapower}/Tools/rest-cors/mgmt/config/default/Domain/${domain}`, 'delete', null, { 'Authorization': `Basic ${btoa(`${credentials.username}:${credentials.password}`)}` }))
         Promise.all(list);
         console.log('all deleted.')
+        setInstalled('false');
+        setAuth(false);
     }
 
     const handleDrawerOpen = () => {
@@ -170,9 +202,9 @@ export default function Appbar(props) {
                     >
                         <MenuIcon />
                     </IconButton>
-                    <Typography variant="h6" noWrap component="div">
+                    <Button size='large' variant='h1' noWrap component="div" onClick={()=>{handlePageChange(0)}}>
                         Datapower API Automation
-                    </Typography>
+                    </Button>
                     <IconButton onClick={handleRemoveAll}>
                         <DeleteForeverIcon />
                     </IconButton>
@@ -190,9 +222,6 @@ export default function Appbar(props) {
                         sx={{
                             height: "40px",
                             width: "150px",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            display: "flex",
                         }}
                         defaultValue={domains.selected}
                         value={domains.selected}
@@ -256,33 +285,49 @@ export default function Appbar(props) {
                 </List>
                 <Divider />
                 <List>
-                    {['All mail', 'Trash', 'Spam'].map((text, index) => (
-                        <ListItem key={text} disablePadding sx={{ display: 'block' }}>
-                            <ListItemButton
+                    {["Settings", "Troubleshoot", "Load-Balancers"].map((text, index) => (
+                        <ListItemButton
+                            key={text}
+                            sx={{
+                                minHeight: 48,
+                                justifyContent: open ? "initial" : "center",
+                                px: 2.5,
+                            }}
+                            onClick={() => 
+                                text === "Settings"
+                                    ? null
+                                    : text === "Troubleshoot"
+                                        ? null
+                                        : text === "Load-Balancers"
+                                            ? handlePageChange(7)
+                                            : null
+                            }
+                        >
+                            <ListItemIcon
                                 sx={{
-                                    minHeight: 48,
-                                    justifyContent: open ? 'initial' : 'center',
-                                    px: 2.5,
+                                    minWidth: 0,
+                                    mr: open ? 3 : "auto",
+                                    justifyContent: "center",
                                 }}
                             >
-                                <ListItemIcon
-                                    sx={{
-                                        minWidth: 0,
-                                        mr: open ? 3 : 'auto',
-                                        justifyContent: 'center',
-                                    }}
-                                >
-                                    {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-                                </ListItemIcon>
-                                <ListItemText primary={text} sx={{ opacity: open ? 1 : 0 }} />
-                            </ListItemButton>
-                        </ListItem>
+                                {text === "Settings" ? (
+                                    null
+                                ) : text === "Troubleshoot" ? (
+                                    null
+                                ) : text === "Load-Balancer" ? (
+                                    <BalanceIcon />
+                                ) : (
+                                    <DisabledByDefaultRoundedIcon />
+                                )}
+                            </ListItemIcon>
+                            <ListItemText primary={text} sx={{ opacity: open ? 1 : 0 }} />
+                        </ListItemButton>
                     ))}
                 </List>
             </Drawer>
             <Box component="main" sx={{ flexGrow: 1, p: 10, display: 'flex', justifyContent: 'center' }}>
                 <DrawerHeader />
-                <Step installed={installed} setInstalled={setInstalled} credentials={credentials}></Step>
+                {switchPage(selectedPage)}
             </Box>
         </Box>
     );
