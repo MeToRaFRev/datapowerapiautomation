@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useEffect } from 'react';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
@@ -17,29 +17,25 @@ const request = (url, method, data, headers) => {
 }
 
 export default function Login(props) {
-    const { setAuth, setCredentials, domains, setDomains } = props;
+    const { setAuth, auth, setCredentials, credentials, domains, setDomains } = props;
     const [dialogData, setDialogData] = React.useState({ open: true, username: '', password: '', datapower: '', loading: false })
-    const handleClose = () => {
-        if (dialogData.username === '' || dialogData.password === '' || dialogData.datapower === '') {
-            alert('Please enter all the fields')
-        } else {
-            setDialogData({ ...dialogData, loading: true })
-            const response = request(`http://${dialogData.datapower}/Tools/rest-cors/mgmt/config/default/APISecurityBasicAuth`, 'get', null, { 'Authorization': `Basic ${btoa(`${dialogData.username}:${dialogData.password}`)}` })
-            response.then(() => {
+
+    const handleLogin = (properties) => {
+        request(`http://${properties.datapower}/Tools/rest-cors/mgmt/config/default/APISecurityBasicAuth`, 'get', null, { 'Authorization': `Basic ${btoa(`${properties.username}:${properties.password}`)}` })
+            .then(() => {
                 setAuth(true)
-                setCredentials({ username: dialogData.username, password: dialogData.password, datapower: dialogData.datapower })
-                const response = request(`http://${dialogData.datapower}/Tools/rest-cors/mgmt/domains/config/`, 'get', null, { 'Authorization': `Basic ${btoa(`${dialogData.username}:${dialogData.password}`)}` })
-                response.then((res) => {
+                localStorage.setItem('credentials', JSON.stringify({ username: properties.username, password: properties.password, datapower: properties.datapower }))
+                request(`http://${properties.datapower}/Tools/rest-cors/mgmt/domains/config/`, 'get', null, { 'Authorization': `Basic ${btoa(`${properties.username}:${properties.password}`)}` }).then((res) => {
                     if (res.data.domain) {
                         if (!Array.isArray(res.data.domain)) {
-                            alert(`Looks like you have only one domain. Please import the initial package that come's with the install and try again`)
+                            alert(`This error is not suppose to happend but its likely happend because there is an issue with the domains of the datapower. Please contact the developer. Error: ${res.data.domain}`)
                         }
                         else {
                             let pulledDomains = []
                             Object.keys(res.data.domain).forEach((key) => {
                                 if (res.data.domain[key].name !== 'default' && res.data.domain[key].name !== '_Tools')
                                     pulledDomains.push(res.data.domain[key].name);
-                                if (res.data.domain[key].name === '_Test') {
+                                if (res.data.domain[key].name === '_Test' || res.data.domain[key].name === '_Production') {
                                     alert('Looks like you already installed the automation or either failed to.')
                                 }
                             });
@@ -52,7 +48,6 @@ export default function Login(props) {
                 }).catch((err) => {
                     alert(err)
                 })
-                return;
             }).catch((err) => {
                 if (err.response && err.response.status && err.response.status === 401) {
                     alert('Invalid Credentials')
@@ -63,8 +58,23 @@ export default function Login(props) {
                 setDialogData({ ...dialogData, loading: false })
                 return;
             })
+    }
+
+    const handleClose = () => {
+        if (dialogData.username === '' || dialogData.password === '' || dialogData.datapower === '') {
+            alert('Please enter all the fields')
+        } else {
+            setDialogData({ ...dialogData, loading: true })
+            setCredentials({ username: dialogData.username, password: dialogData.password, datapower: dialogData.datapower })
+            handleLogin(dialogData)
+            return;
         }
     };
+    useEffect(() => {
+        if (auth === false&&credentials.datapower !== ''&&credentials.username !== ''&&credentials.password !== '') {
+            handleLogin(credentials)
+        }
+    },[])
 
     return (
         <div>
